@@ -37,10 +37,19 @@ func TestRPSLimiter(t *testing.T) {
 	t.Run("fixed window", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		l := NewFixedWindow(ctx, 100)
-		c, _ := fn(t, ctx, l, 1000)
+		c, _ := fn(t, ctx, l, 1)
 		_ = cancel
 		if c != 200 {
 			t.Errorf("got %d, want 200", c)
+		}
+	})
+	t.Run("sliding log", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		l := NewSlidingLog(100)
+		c, f := fn(t, ctx, l, 2)
+		_ = cancel
+		if c != 200 {
+			t.Errorf("got %d, want 200 %d", c, f)
 		}
 	})
 }
