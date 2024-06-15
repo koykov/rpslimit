@@ -7,25 +7,65 @@ import (
 )
 
 type SlidingLogV2 struct {
-	mux sync.Mutex
-	lim uint64
-	buf []time.Time
+	mux  sync.Mutex
+	head *slentry
+	tail *slentry
+	ln   uint64
+	stk  []*slentry
+	lim  uint64
 }
 
 func NewSlidingLogV2(ctx context.Context, limit uint64) *SlidingLogV2 {
 	_ = ctx
-	return &SlidingLogV2{lim: limit}
+	entry := &slentry{}
+	return &SlidingLogV2{
+		lim:  limit,
+		head: entry,
+		tail: entry,
+		ln:   1,
+	}
 }
 
 func (l *SlidingLogV2) Allow() bool {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
-	obsolete := time.Now().Add(-time.Second)
-	for len(l.buf) > 0 && l.buf[0].Before(obsolete) {
-		l.buf = l.buf[1:] // bad way, will lead to allocations all the time
+	outdate := time.Now().Add(-time.Second)
+	for l.ln > 0 && l.head != nil && l.head.t.Before(outdate) {
+		chead := l.head
+		l.head = l.head.n
+		chead.n = nil
+		l.stk = append(l.stk, chead)
+		l.ln--
+	}
+	if l.ln == 0 {
+		l.tail = nil
 	}
 
-	l.buf = append(l.buf, time.Now())
-	return len(l.buf) < int(l.lim)
+	var entry *slentry
+	if len(l.stk) > 0 {
+		entry = l.stk[len(l.stk)-1]
+		l.stk = l.stk[:len(l.stk)-1]
+	} else {
+		entry = &slentry{}
+	}
+	entry.t = time.Now()
+
+	if l.head == nil {
+		l.head = entry
+	}
+	if l.tail == nil {
+		l.tail = entry
+	} else {
+		l.tail.n = entry
+	}
+	l.tail = entry
+	l.ln++
+
+	return l.ln <= l.lim
+}
+
+type slentry struct {
+	t time.Time
+	n *slentry
 }
