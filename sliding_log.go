@@ -1,6 +1,7 @@
 package rpslimit
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -14,7 +15,8 @@ type SlidingLog struct {
 	lim  uint64
 }
 
-func NewSlidingLog(limit uint64) *SlidingLog {
+func NewSlidingLog(ctx context.Context, limit uint64) *SlidingLog {
+	_ = ctx
 	entry := &slentry{}
 	return &SlidingLog{
 		lim:  limit,
