@@ -9,8 +9,8 @@ import (
 type SlidingWindow struct {
 	mux    sync.Mutex
 	lim    uint64
-	ct     time.Time
-	pc, cc uint64
+	ct     time.Time // current time
+	pc, cc uint64    // prev count; curr count
 }
 
 func NewSlidingWindow(ctx context.Context, limit uint64) *SlidingWindow {
