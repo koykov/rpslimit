@@ -61,4 +61,13 @@ func TestRPSLimiter(t *testing.T) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
+	t.Run("sliding window", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		l := NewSlidingWindow(ctx, 100)
+		c, _ := fn(t, ctx, l, 2)
+		_ = cancel
+		if c != 100 {
+			t.Errorf("got %d, want 100", c)
+		}
+	})
 }
