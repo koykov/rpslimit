@@ -37,14 +37,14 @@ func (l *TokenBucket) init(ctx context.Context, dur time.Duration) {
 	l.t = time.NewTimer(dur)
 	for {
 		select {
+		case <-ctx.Done():
+			l.t.Stop()
+			return
 		case <-l.t.C:
 			select {
 			case l.c <- struct{}{}:
 			default:
 			}
-		case <-ctx.Done():
-			l.t.Stop()
-			return
 		}
 	}
 }

@@ -79,4 +79,13 @@ func TestRPSLimiter(t *testing.T) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
+	t.Run("leaky bucket", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		l := NewLeakyBucket(ctx, 100)
+		c, _ := fn(t, ctx, l, 2)
+		_ = cancel
+		if c != 300 {
+			t.Errorf("got %d, want 300", c)
+		}
+	})
 }
