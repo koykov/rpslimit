@@ -1,6 +1,7 @@
 package rpslimit
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -8,22 +9,19 @@ import (
 type SlidingLogV2 struct {
 	mux sync.Mutex
 	lim uint64
-	dur time.Duration
 	buf []time.Time
 }
 
-func NewSlidingLogV2(limit uint64, interval time.Duration) *SlidingLogV2 {
-	return &SlidingLogV2{
-		lim: limit,
-		dur: interval,
-	}
+func NewSlidingLogV2(ctx context.Context, limit uint64) *SlidingLogV2 {
+	_ = ctx
+	return &SlidingLogV2{lim: limit}
 }
 
 func (l *SlidingLogV2) Allow() bool {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
-	obsolete := time.Now().Add(-l.dur)
+	obsolete := time.Now().Add(-time.Second)
 	for len(l.buf) > 0 && l.buf[0].Before(obsolete) {
 		l.buf = l.buf[1:] // bad way, will lead to allocations all the time
 	}
