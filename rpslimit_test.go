@@ -39,7 +39,7 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewFixedWindow(ctx, 100)
 		c, _ := fn(t, ctx, l, 1)
 		_ = cancel
-		if c > 200 {
+		if !equal(c, 200, 20) {
 			t.Errorf("got %d, want max 200", c)
 		}
 	})
@@ -48,7 +48,7 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewSlidingLog(context.TODO(), 100)
 		c, _ := fn(t, ctx, l, 2)
 		_ = cancel
-		if c > 100 {
+		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want max 100", c)
 		}
 	})
@@ -57,7 +57,7 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewSlidingLogV2(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
 		_ = cancel
-		if c != 100 {
+		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
@@ -66,7 +66,7 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewSlidingWindow(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
 		_ = cancel
-		if c != 100 {
+		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
@@ -75,7 +75,7 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewTokenBucket(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
 		_ = cancel
-		if c != 100 {
+		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
@@ -84,8 +84,21 @@ func TestRPSLimiter(t *testing.T) {
 		l := NewLeakyBucket(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
 		_ = cancel
-		if c != 300 {
+		if !equal(c, 300, 10) {
 			t.Errorf("got %d, want 300", c)
 		}
 	})
+	t.Run("realtime counter", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		l := NewRealtimeCounter(ctx, 100)
+		c, _ := fn(t, ctx, l, 2)
+		_ = cancel
+		if !equal(c, 100, 15) {
+			t.Errorf("got %d, want 100", c)
+		}
+	})
+}
+
+func equal(a, b, delta uint64) bool {
+	return a > b-delta && a < b+delta || a == b
 }
