@@ -9,7 +9,7 @@ import (
 )
 
 func TestRPSLimiter(t *testing.T) {
-	fn := func(t *testing.T, ctx context.Context, l RPSLimiter, w int) (uint64, uint64) {
+	fn := func(t *testing.T, ctx context.Context, l Interface, w int) (uint64, uint64) {
 		var c, f uint64
 		var wg sync.WaitGroup
 		for i := 0; i < w; i++ {
@@ -36,27 +36,27 @@ func TestRPSLimiter(t *testing.T) {
 	}
 	t.Run("fixed window", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewFixedWindow(ctx, 100)
 		c, _ := fn(t, ctx, l, 1)
-		_ = cancel
 		if !equal(c, 200, 20) {
 			t.Errorf("got %d, want max 200", c)
 		}
 	})
 	t.Run("sliding log", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewSlidingLog(context.TODO(), 100)
 		c, _ := fn(t, ctx, l, 2)
-		_ = cancel
 		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want max 100", c)
 		}
 	})
 	t.Run("sliding log v2", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewSlidingLogV2(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
-		_ = cancel
 		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want 100", c)
 		}
@@ -72,27 +72,27 @@ func TestRPSLimiter(t *testing.T) {
 	})
 	t.Run("token bucket", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewTokenBucket(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
-		_ = cancel
 		if !equal(c, 100, 10) {
 			t.Errorf("got %d, want 100", c)
 		}
 	})
 	t.Run("leaky bucket", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewLeakyBucket(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
-		_ = cancel
 		if !equal(c, 300, 10) {
 			t.Errorf("got %d, want 300", c)
 		}
 	})
 	t.Run("realtime counter", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
 		l := NewRealtimeCounter(ctx, 100)
 		c, _ := fn(t, ctx, l, 2)
-		_ = cancel
 		if !equal(c, 100, 15) {
 			t.Errorf("got %d, want 100", c)
 		}

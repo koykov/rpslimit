@@ -6,18 +6,18 @@ import (
 	"github.com/koykov/counter"
 )
 
-type RealtimeCounter struct {
+type realtimeCounter struct {
 	lim uint64
 	c   *counter.Counter
 }
 
-func NewRealtimeCounter(ctx context.Context, limit uint64) *RealtimeCounter {
+func NewRealtimeCounter(ctx context.Context, limit uint64) Interface {
 	_ = ctx
-	l := &RealtimeCounter{lim: limit, c: counter.NewCounter()}
+	l := &realtimeCounter{lim: limit, c: counter.NewCounter()}
 	return l
 }
 
-func (l *RealtimeCounter) Allow() bool {
+func (l *realtimeCounter) Allow() bool {
 	l.c.Inc()
 	return uint64(l.c.Sum()) < l.lim
 }

@@ -6,18 +6,18 @@ import (
 	"time"
 )
 
-type SlidingLog struct {
+type slidingLog struct {
 	mux sync.Mutex
 	lim uint64
 	buf []time.Time
 }
 
-func NewSlidingLog(ctx context.Context, limit uint64) *SlidingLog {
+func NewSlidingLog(ctx context.Context, limit uint64) Interface {
 	_ = ctx
-	return &SlidingLog{lim: limit}
+	return &slidingLog{lim: limit}
 }
 
-func (l *SlidingLog) Allow() bool {
+func (l *slidingLog) Allow() bool {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 

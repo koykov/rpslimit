@@ -1,5 +1,5 @@
 package rpslimit
 
-type RPSLimiter interface {
+type Interface interface {
 	Allow() bool
 }

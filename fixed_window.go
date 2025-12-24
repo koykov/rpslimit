@@ -2,30 +2,19 @@ package rpslimit
 
 import (
 	"context"
-	"sync"
 	"sync/atomic"
 	"time"
 )
 
-type FixedWindow struct {
+type fixedWindow struct {
 	l uint64
 	c uint64
-	o sync.Once
 }
 
-func NewFixedWindow(ctx context.Context, limit uint64) *FixedWindow {
-	l := &FixedWindow{
+func NewFixedWindow(ctx context.Context, limit uint64) Interface {
+	l := &fixedWindow{
 		l: limit,
 	}
-	go l.init(ctx)
-	return l
-}
-
-func (l *FixedWindow) Allow() bool {
-	return atomic.AddUint64(&l.c, 1) <= l.l
-}
-
-func (l *FixedWindow) init(ctx context.Context) {
 	t := time.NewTimer(time.Second)
 	go func() {
 		for {
@@ -38,4 +27,9 @@ func (l *FixedWindow) init(ctx context.Context) {
 			}
 		}
 	}()
+	return l
+}
+
+func (l *fixedWindow) Allow() bool {
+	return atomic.AddUint64(&l.c, 1) <= l.l
 }
