@@ -6,22 +6,22 @@ import (
 	"time"
 )
 
-type SlidingWindow struct {
+type slidingWindow struct {
 	mux    sync.Mutex
 	lim    uint64
 	ct     time.Time // current time
 	pc, cc uint64    // prev count; curr count
 }
 
-func NewSlidingWindow(ctx context.Context, limit uint64) *SlidingWindow {
+func NewSlidingWindow(ctx context.Context, limit uint64) Interface {
 	_ = ctx
-	return &SlidingWindow{
+	return &slidingWindow{
 		lim: limit,
 		ct:  time.Now(),
 	}
 }
 
-func (l *SlidingWindow) Allow() bool {
+func (l *slidingWindow) Allow() bool {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type SlidingLogV2 struct {
+type slidingLogV2 struct {
 	mux  sync.Mutex
 	head *slentry
 	tail *slentry
@@ -15,10 +15,10 @@ type SlidingLogV2 struct {
 	lim  uint64
 }
 
-func NewSlidingLogV2(ctx context.Context, limit uint64) *SlidingLogV2 {
+func NewSlidingLogV2(ctx context.Context, limit uint64) Interface {
 	_ = ctx
 	entry := &slentry{}
-	return &SlidingLogV2{
+	return &slidingLogV2{
 		lim:  limit,
 		head: entry,
 		tail: entry,
@@ -26,7 +26,7 @@ func NewSlidingLogV2(ctx context.Context, limit uint64) *SlidingLogV2 {
 	}
 }
 
-func (l *SlidingLogV2) Allow() bool {
+func (l *slidingLogV2) Allow() bool {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
